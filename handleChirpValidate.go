@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func handleValidateChirp(w http.ResponseWriter, r *http.Request) {
+func handleChirpValidate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body string `json:"body"`
 	}
@@ -38,7 +38,6 @@ func handleValidateChirp(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, returnVals{
 		CleanedBody: cleaned,
 	})
-
 }
 
 func replaceWords(str string, wordsToReplace map[string]struct{}, replacer string) string {
