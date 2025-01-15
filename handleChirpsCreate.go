@@ -4,14 +4,25 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
+
+	"VictorVolovik/go-chirpy/internal/database"
 )
 
-func handleChirpValidate(w http.ResponseWriter, r *http.Request) {
+type Chirp struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Body      string    `json:"body"`
+	UserId    uuid.UUID `json:"user_id"`
+}
+
+func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Body string `json:"body"`
-	}
-	type returnVals struct {
-		CleanedBody string `json:"cleaned_body"`
+		Body   string    `json:"body"`
+		UserId uuid.UUID `json:"user_id"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -35,8 +46,19 @@ func handleChirpValidate(w http.ResponseWriter, r *http.Request) {
 	}
 	replacer := "****"
 	cleaned := replaceWords(params.Body, badWords, replacer)
-	respondWithJSON(w, http.StatusOK, returnVals{
-		CleanedBody: cleaned,
+
+	chirp, err := cfg.db.CreateChirp(r.Context(), database.CreateChirpParams{Body: cleaned, UserID: params.UserId})
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Error creating new chirp", nil)
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, Chirp{
+		ID:        chirp.ID,
+		CreatedAt: chirp.CreatedAt,
+		UpdatedAt: chirp.UpdatedAt,
+		Body:      chirp.Body,
+		UserId:    chirp.UserID,
 	})
 }
 
