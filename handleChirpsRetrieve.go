@@ -31,7 +31,7 @@ func (cfg *apiConfig) handleChirpsGetById(w http.ResponseWriter, r *http.Request
 func (cfg *apiConfig) handleChirpsGetAll(w http.ResponseWriter, r *http.Request) {
 	chirps, err := cfg.db.GetChirps(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Error getting all chirps", nil)
+		respondWithError(w, http.StatusInternalServerError, "Error getting all chirps", err)
 		return
 	}
 
