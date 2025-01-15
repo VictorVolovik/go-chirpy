@@ -30,7 +30,7 @@ func (cfg *apiConfig) handleUsersCreate(w http.ResponseWriter, r *http.Request) 
 
 	user, err := cfg.db.CreateUser(r.Context(), params.Email)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Error creating new user", nil)
+		respondWithError(w, http.StatusInternalServerError, "Error creating new user", nil)
 		return
 	}
 

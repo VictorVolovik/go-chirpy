@@ -49,7 +49,7 @@ func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, r *http.Request)
 
 	chirp, err := cfg.db.CreateChirp(r.Context(), database.CreateChirpParams{Body: cleaned, UserID: params.UserId})
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Error creating new chirp", nil)
+		respondWithError(w, http.StatusInternalServerError, "Error creating new chirp", nil)
 		return
 	}
 
