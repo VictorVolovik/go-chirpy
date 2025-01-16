@@ -6,17 +6,18 @@ import (
 	"time"
 
 	"VictorVolovik/go-chirpy/internal/auth"
+	"VictorVolovik/go-chirpy/internal/database"
 )
 
 func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Email            string `json:"email"`
-		Password         string `json:"password"`
-		ExpiresInSeconds int    `json:"expires_in_seconds"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 	type response struct {
 		User
-		Token string `json:"token"`
+		Token        string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -48,12 +49,26 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expirationTime := time.Hour
-	if params.ExpiresInSeconds > 0 && params.ExpiresInSeconds < 3600 {
-		expirationTime = time.Duration(params.ExpiresInSeconds) * time.Second
+	accessTokenExpirationTime := time.Hour
+	accessToken, err := auth.MakeJWT(user.ID, cfg.jwtSecret, accessTokenExpirationTime)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to login", err)
+		return
 	}
 
-	token, err := auth.MakeJWT(user.ID, cfg.jwtSecret, expirationTime)
+	refreshTokenExpirationTimestamp := time.Now().Add(time.Hour * 24 * 60) // in 60 days
+	refreshToken, err := auth.MakeRefreshToken()
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to login", err)
+		return
+	}
+	err = cfg.db.CreateRefreshToken(
+		r.Context(),
+		database.CreateRefreshTokenParams{
+			Token:     refreshToken,
+			ExpiresAt: refreshTokenExpirationTimestamp,
+			UserID:    user.ID,
+		})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Unable to login", err)
 		return
@@ -66,6 +81,7 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt: user.UpdatedAt,
 			Email:     user.Email,
 		},
-		Token: token,
+		Token:        accessToken,
+		RefreshToken: refreshToken,
 	})
 }

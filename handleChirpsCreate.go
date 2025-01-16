@@ -27,7 +27,7 @@ func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, r *http.Request)
 
 	token, err := auth.GetBearerToken(r.Header)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "No JWT found", err)
+		respondWithError(w, http.StatusUnauthorized, "No JWT provided", err)
 		return
 	}
 
