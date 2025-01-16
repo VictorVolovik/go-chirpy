@@ -11,6 +11,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type TokenType string
+
+const (
+	// TokenTypeAccess -
+	TokenTypeAccess TokenType = "chirpy-access"
+)
+
 func HashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -34,7 +41,7 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.RegisteredClaims{
-			Issuer:    "chirpy",
+			Issuer:    string(TokenTypeAccess),
 			IssuedAt:  jwt.NewNumericDate(currentTime),
 			ExpiresAt: jwt.NewNumericDate(currentTime.Add(expiresIn)),
 			Subject:   userID.String(),
@@ -57,21 +64,21 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 		},
 	)
 	if err != nil {
-		return uuid.UUID{}, fmt.Errorf("error validating jwt, %w", err)
+		return uuid.Nil, fmt.Errorf("error validating jwt, %w", err)
 	}
 
 	if !token.Valid {
-		return uuid.UUID{}, fmt.Errorf("jwt is not valid")
+		return uuid.Nil, fmt.Errorf("jwt is not valid")
 	}
 
 	userIDString, err := claims.GetSubject()
 	if err != nil {
-		return uuid.UUID{}, fmt.Errorf("error getting user's id, %w", err)
+		return uuid.Nil, fmt.Errorf("error getting user's id, %w", err)
 	}
 
 	userID, err := uuid.Parse(userIDString)
 	if err != nil {
-		return uuid.UUID{}, fmt.Errorf("error parsing uuid from user's id, %w", err)
+		return uuid.Nil, fmt.Errorf("error parsing uuid from user's id, %w", err)
 	}
 
 	return userID, nil
