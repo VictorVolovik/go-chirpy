@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"net/http"
 	"testing"
 	"time"
 
@@ -117,5 +118,39 @@ func TestValidateJWT_Expired(t *testing.T) {
 	if err == nil {
 		t.Errorf("should error as expired")
 		return
+	}
+}
+
+func TestGetBearerToken_Exists(t *testing.T) {
+	headers := http.Header{}
+	headers.Add("Authorization", "Bearer TOKEN_STRING")
+	expected := "TOKEN_STRING"
+
+	actual, err := GetBearerToken(headers)
+	if err != nil {
+		t.Errorf("should get bearer token")
+	}
+
+	if actual != expected {
+		t.Errorf("should match")
+	}
+}
+
+func TestGetBearerToken_NoAuthHeader(t *testing.T) {
+	headers := http.Header{}
+
+	_, err := GetBearerToken(headers)
+	if err == nil {
+		t.Errorf("should error as auth headers not found")
+	}
+}
+
+func TestGetBearerToken_MalformeddHeader(t *testing.T) {
+	headers := http.Header{}
+	headers.Add("Authorization", "Bearer ")
+
+	_, err := GetBearerToken(headers)
+	if err == nil {
+		t.Errorf("should error as malformed auth header")
 	}
 }
