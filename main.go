@@ -60,6 +60,7 @@ func main() {
 	mux.HandleFunc("POST /api/chirps", apiCfg.handleChirpsCreate)
 	mux.HandleFunc("GET /api/chirps", apiCfg.handleChirpsGetAll)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handleChirpsGetById)
+	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.handleChirpsDelete)
 
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handleMetricsCheck)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handleAppReset)

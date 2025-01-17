@@ -9,7 +9,7 @@ import (
 func (cfg *apiConfig) handleChirpsGetById(w http.ResponseWriter, r *http.Request) {
 	chirpId, err := uuid.Parse(r.PathValue("chirpID"))
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid chip id", nil)
+		respondWithError(w, http.StatusBadRequest, "Invalid chirp id", nil)
 		return
 	}
 
