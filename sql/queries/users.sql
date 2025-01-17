@@ -18,7 +18,8 @@ SELECT
     created_at,
     updated_at,
     email,
-    hashed_password
+    hashed_password,
+    is_chirpy_red
 FROM users
 WHERE email = $1;
 
@@ -31,4 +32,13 @@ SET
     updated_at = now()
 WHERE
     id = $1
+RETURNING *;
+
+
+-- name: UpgradeUserToChirpyRed :one
+UPDATE users
+SET
+    is_chirpy_red = true,
+    updated_at = now()
+WHERE id = $1
 RETURNING *;

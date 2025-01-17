@@ -17,6 +17,7 @@ type apiConfig struct {
 	db             *database.Queries
 	platform       string
 	jwtSecret      string
+	polkaApiKey    string
 }
 
 func main() {
@@ -42,11 +43,17 @@ func main() {
 		log.Fatal("JWT_SECRET must be set")
 	}
 
+	polkaApiKey := os.Getenv("POLKA_API_KEY")
+	if jwtSecret == "" {
+		log.Fatal("POLKA_API_KEY must be set")
+	}
+
 	apiCfg := apiConfig{
 		fileserverHits: atomic.Int32{},
 		db:             dbQueries,
 		platform:       platform,
 		jwtSecret:      jwtSecret,
+		polkaApiKey:    polkaApiKey,
 	}
 
 	mux := http.NewServeMux()
@@ -61,6 +68,7 @@ func main() {
 	mux.HandleFunc("GET /api/chirps", apiCfg.handleChirpsGetAll)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", apiCfg.handleChirpsGetById)
 	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.handleChirpsDelete)
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlePolkaWebhooks)
 
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handleMetricsCheck)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handleAppReset)

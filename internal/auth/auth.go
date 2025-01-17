@@ -16,7 +16,6 @@ import (
 type TokenType string
 
 const (
-	// TokenTypeAccess -
 	TokenTypeAccess TokenType = "chirpy-access"
 )
 
@@ -111,4 +110,20 @@ func MakeRefreshToken() (string, error) {
 	randomString := hex.EncodeToString(randomData)
 
 	return randomString, nil
+}
+
+func GetAPIKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if len(authHeader) == 0 {
+		return "", fmt.Errorf("no auth header found")
+	}
+
+	// expects header format "ApiKey API_KEY_STRING"
+	authHeaderSlice := strings.Fields(authHeader)
+	if len(authHeaderSlice) != 2 {
+		return "", fmt.Errorf("malformed auth header")
+	}
+	apiKey := authHeaderSlice[1]
+
+	return apiKey, nil
 }
