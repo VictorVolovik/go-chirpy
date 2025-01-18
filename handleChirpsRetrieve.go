@@ -1,6 +1,8 @@
 package main
 
 import (
+	"VictorVolovik/go-chirpy/internal/database"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -29,10 +31,27 @@ func (cfg *apiConfig) handleChirpsGetById(w http.ResponseWriter, r *http.Request
 }
 
 func (cfg *apiConfig) handleChirpsGetAll(w http.ResponseWriter, r *http.Request) {
-	chirps, err := cfg.db.GetChirps(r.Context())
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Error getting all chirps", err)
-		return
+	authorID := r.URL.Query().Get("author_id")
+
+	var chirps []database.Chirp
+	var err error
+	if authorID == "" {
+		chirps, err = cfg.db.GetChirps(r.Context())
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Error getting all chirps", err)
+			return
+		}
+	} else {
+		userID, err := uuid.Parse(authorID)
+		if err != nil {
+			respondWithError(w, http.StatusBadRequest, "Invalid author_id", err)
+			return
+		}
+		chirps, err = cfg.db.GetChirpsByUserId(r.Context(), userID)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("Error getting chirps for user %s", authorID), err)
+			return
+		}
 	}
 
 	returnChirps := make([]Chirp, len(chirps))
