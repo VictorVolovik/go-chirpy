@@ -4,6 +4,7 @@ import (
 	"VictorVolovik/go-chirpy/internal/database"
 	"fmt"
 	"net/http"
+	"sort"
 
 	"github.com/google/uuid"
 )
@@ -31,7 +32,8 @@ func (cfg *apiConfig) handleChirpsGetById(w http.ResponseWriter, r *http.Request
 }
 
 func (cfg *apiConfig) handleChirpsGetAll(w http.ResponseWriter, r *http.Request) {
-	authorID := r.URL.Query().Get("author_id")
+	query := r.URL.Query()
+	authorID := query.Get("author_id")
 
 	var chirps []database.Chirp
 	var err error
@@ -63,6 +65,12 @@ func (cfg *apiConfig) handleChirpsGetAll(w http.ResponseWriter, r *http.Request)
 			Body:      chirp.Body,
 			UserId:    chirp.UserID,
 		}
+	}
+
+	if sortOrder := query.Get("sort"); sortOrder == "desc" {
+		sort.Slice(returnChirps, func(i, j int) bool {
+			return returnChirps[i].CreatedAt.After(returnChirps[j].CreatedAt)
+		})
 	}
 
 	respondWithJSON(w, http.StatusOK, returnChirps)
